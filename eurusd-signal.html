@@ -1,0 +1,58 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Sinyal EUR/USD (1 Menit)</title>
+  <meta charset="utf-8" />
+  <style>
+    body { font-family: Arial; padding: 30px; background: #f4f4f4; text-align: center; }
+    h1 { color: #333; }
+    #signal { font-size: 2em; margin-top: 30px; padding: 20px; border-radius: 10px; display: inline-block; }
+    .buy { background: #c8f7c5; color: #0a0; }
+    .sell { background: #f7c5c5; color: #a00; }
+    .neutral { background: #ddd; color: #333; }
+  </style>
+</head>
+<body>
+  <h1>Sinyal Buy/Sell EUR/USD - TF 1 Menit</h1>
+  <div id="signal" class="neutral">Memuat data...</div>
+
+  <script>
+    const API_KEY = "demo"; // GANTI dengan API key kamu dari https://twelvedata.com
+    const API_URL = `https://api.twelvedata.com/time_series?symbol=EUR/USD&interval=1min&outputsize=30&apikey=${API_KEY}`;
+
+    async function getSignal() {
+      const el = document.getElementById("signal");
+      el.textContent = "Mengambil data...";
+      el.className = "neutral";
+
+      try {
+        const res = await fetch(API_URL);
+        const data = await res.json();
+        const closes = data.values.map(p => parseFloat(p.close)).reverse(); // urut lama ke baru
+
+        const ma5 = avg(closes.slice(-5));
+        const ma20 = avg(closes.slice(-20));
+        let signal = "NO SIGNAL";
+        let style = "neutral";
+
+        if (ma5 > ma20) { signal = "BUY"; style = "buy"; }
+        else if (ma5 < ma20) { signal = "SELL"; style = "sell"; }
+
+        el.textContent = `SINYAL: ${signal}`;
+        el.className = style;
+      } catch (e) {
+        el.textContent = "Gagal ambil data";
+        el.className = "neutral";
+      }
+    }
+
+    function avg(arr) {
+      return arr.reduce((a, b) => a + b, 0) / arr.length;
+    }
+
+    getSignal();
+    setInterval(getSignal, 60000); // update setiap 1 menit
+  </script>
+</body>
+</html>
